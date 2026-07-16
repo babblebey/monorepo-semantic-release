@@ -13,6 +13,29 @@ function resolveConfigRoot(cwd, configRoot) {
   return cwd;
 }
 
+function toPackageRuntimeOverrides(cliOptions) {
+  return {
+    ci: cliOptions.ci,
+    noCi: cliOptions.noCi,
+    branches: cliOptions.branches,
+    plugins: cliOptions.plugins,
+    repositoryUrl: cliOptions.repositoryUrl,
+    tagFormat: cliOptions.tagFormat,
+  };
+}
+
+function stripMonorepoOnlyOptions(options) {
+  const {
+    packages,
+    discoverPackages,
+    onPlan,
+    configRoot,
+    ...releaseOptions
+  } = options;
+
+  return releaseOptions;
+}
+
 export default async function releaseMonorepo(
   cliOptions = {},
   { cwd = process.cwd(), env = process.env, stdout = process.stdout, stderr = process.stderr } = {}
@@ -36,12 +59,8 @@ export default async function releaseMonorepo(
 
   sharedContext.logger = getLogger(sharedContext);
 
-  const { options: resolvedConfigOptions } = await resolveConfig(
-    sharedContext,
-    effectiveCliOptions,
-    { buildPlugins: false }
-  );
-  const resolvedOptions = { ...resolvedConfigOptions, ...effectiveCliOptions };
+  const { options: rootResolvedOptions } = await resolveConfig(sharedContext, {}, { buildPlugins: false });
+  const resolvedOptions = { ...rootResolvedOptions, ...effectiveCliOptions };
 
   if (shouldAutoDryRun) {
     sharedContext.logger.warn("This run was not triggered in a known CI environment, running in dry-run mode.");
@@ -63,13 +82,8 @@ export default async function releaseMonorepo(
     packages,
     options: {
       dryRun: resolvedOptions.dryRun,
-      ci: resolvedOptions.ci,
-      noCi: resolvedOptions.noCi,
-      branches: resolvedOptions.branches,
-      plugins: resolvedOptions.plugins,
-      repositoryUrl: resolvedOptions.repositoryUrl,
-      tagFormat: resolvedOptions.tagFormat || "${name}@${version}",
-      baseConfig: resolvedOptions.baseConfig,
+      rootBaseConfig: stripMonorepoOnlyOptions(rootResolvedOptions),
+      runtimeOverrides: toPackageRuntimeOverrides(effectiveCliOptions),
     },
   });
 
