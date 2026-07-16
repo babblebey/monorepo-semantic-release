@@ -6,7 +6,8 @@
   "author": "Olabode Lawal-Shittabey (http://babblebey.dev)",
   "main": "index.js",
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "provenance": true
   },
   "exports": "./index.js",
   "bin": {
