@@ -4,6 +4,9 @@
   "description": "Monorepo orchestrator for semantic-release built on @semantic-release/core",
   "author": "Olabode Lawal-Shittabey (http://babblebey.dev)",
   "main": "index.js",
+  "publishConfig": {
+    "access": "public"
+  },
   "keywords": [
     "semantic-release",
     "monorepo",
