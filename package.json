@@ -23,7 +23,7 @@
   ],
   "license": "ISC",
   "dependencies": {
-    "@semantic-release/core": "^1.0.0-beta.3",
+    "@semantic-release/core": "^1.0.0-beta.2",
     "debug": "^4.4.1",
     "fast-glob": "^3.3.3"
   }
