@@ -1,22 +1,33 @@
-import { getLogger, resolveEnvCi } from "@semantic-release/core";
-import discoverPackages from "./lib/discover-packages.js";
+import path from "node:path";
+
+import { getLogger, resolveConfig, resolveEnvCi } from "@semantic-release/core";
+import discoverPackages, { resolveWorkspaceRoot } from "./lib/discover-packages.js";
 import buildPlan from "./lib/build-plan.js";
 import runPlan from "./lib/run-plan.js";
+
+function resolveConfigRoot(cwd, configRoot) {
+  if (configRoot) {
+    return path.resolve(cwd, configRoot);
+  }
+
+  return cwd;
+}
 
 export default async function releaseMonorepo(
   cliOptions = {},
   { cwd = process.cwd(), env = process.env, stdout = process.stdout, stderr = process.stderr } = {}
 ) {
-  const envCiResult = resolveEnvCi({ env, cwd });
+  const workspaceRoot = await resolveWorkspaceRoot(resolveConfigRoot(cwd, cliOptions.configRoot));
+  const envCiResult = resolveEnvCi({ env, cwd: workspaceRoot });
   const { isCi, isPr } = envCiResult;
   const noCi = Boolean(cliOptions.noCi || cliOptions.ci === false);
 
   const shouldAutoDryRun = !isCi && !cliOptions.dryRun && !noCi;
-  const effectiveOptions = shouldAutoDryRun ? { ...cliOptions, dryRun: true } : cliOptions;
+  const effectiveCliOptions = shouldAutoDryRun ? { ...cliOptions, dryRun: true } : cliOptions;
   const shouldSkipRelease = isCi && isPr && !noCi;
 
   const sharedContext = {
-    cwd,
+    cwd: workspaceRoot,
     env,
     stdout,
     stderr,
@@ -24,6 +35,13 @@ export default async function releaseMonorepo(
   };
 
   sharedContext.logger = getLogger(sharedContext);
+
+  const { options: resolvedConfigOptions } = await resolveConfig(
+    sharedContext,
+    effectiveCliOptions,
+    { buildPlugins: false }
+  );
+  const resolvedOptions = { ...resolvedConfigOptions, ...effectiveCliOptions };
 
   if (shouldAutoDryRun) {
     sharedContext.logger.warn("This run was not triggered in a known CI environment, running in dry-run mode.");
@@ -35,31 +53,31 @@ export default async function releaseMonorepo(
   }
 
   const packages = await discoverPackages({
-    cwd,
-    packages: effectiveOptions.packages,
-    discoverPackages: effectiveOptions.discoverPackages !== false,
+    cwd: workspaceRoot,
+    packages: resolvedOptions.packages,
+    discoverPackages: resolvedOptions.discoverPackages !== false,
   });
 
   const { plan, preparedRuns } = await buildPlan({
     sharedContext,
     packages,
     options: {
-      dryRun: effectiveOptions.dryRun,
-      ci: effectiveOptions.ci,
-      noCi: effectiveOptions.noCi,
-      branches: effectiveOptions.branches,
-      plugins: effectiveOptions.plugins,
-      repositoryUrl: effectiveOptions.repositoryUrl,
-      tagFormat: effectiveOptions.tagFormat || "${name}@${version}",
-      baseConfig: effectiveOptions.baseConfig,
+      dryRun: resolvedOptions.dryRun,
+      ci: resolvedOptions.ci,
+      noCi: resolvedOptions.noCi,
+      branches: resolvedOptions.branches,
+      plugins: resolvedOptions.plugins,
+      repositoryUrl: resolvedOptions.repositoryUrl,
+      tagFormat: resolvedOptions.tagFormat || "${name}@${version}",
+      baseConfig: resolvedOptions.baseConfig,
     },
   });
 
-  if (typeof effectiveOptions.onPlan === "function") {
-    await effectiveOptions.onPlan(plan);
+  if (typeof resolvedOptions.onPlan === "function") {
+    await resolvedOptions.onPlan(plan);
   }
 
-  if (effectiveOptions.dryRun) {
+  if (resolvedOptions.dryRun) {
     const executionSkipped = plan.order
       .map((packageName) => plan.packages.find((pkg) => pkg.name === packageName))
       .filter((pkg) => pkg?.changed)
