@@ -1,0 +1,13 @@
+{
+  "name": "monorepo-semantic-release",
+  "version": "0.0.0-development",
+  "description": "Monorepo orchestrator for semantic-release built on @semantic-release/core",
+  "author": "Olabode Lawal-Shittabey (http://babblebey.dev)",
+  "main": "index.js",
+  "keywords": [
+    "semantic-release",
+    "monorepo",
+    "release-automation"
+  ],
+  "license": "ISC"
+}
