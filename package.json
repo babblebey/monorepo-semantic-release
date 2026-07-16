@@ -25,6 +25,7 @@
   "dependencies": {
     "@semantic-release/core": "^1.0.0-beta.2",
     "debug": "^4.4.1",
-    "fast-glob": "^3.3.3"
+    "fast-glob": "^3.3.3",
+    "yaml": "^2.8.1"
   }
 }
