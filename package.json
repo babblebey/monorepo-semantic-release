@@ -2,15 +2,29 @@
   "name": "@babblebey/monorepo-semantic-release",
   "version": "0.0.0",
   "description": "Monorepo orchestrator for semantic-release built on @semantic-release/core",
+  "type": "module",
   "author": "Olabode Lawal-Shittabey (http://babblebey.dev)",
   "main": "index.js",
   "publishConfig": {
     "access": "public"
+  },
+  "exports": "./index.js",
+  "bin": {
+    "monorepo-semantic-release": "./bin/monorepo-semantic-release.js"
+  },
+  "scripts": {
+    "test": "node --test",
+    "cli": "node ./bin/monorepo-semantic-release.js"
   },
   "keywords": [
     "semantic-release",
     "monorepo",
     "release-automation"
   ],
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "@semantic-release/core": "^1.0.0-beta.3",
+    "debug": "^4.4.1",
+    "fast-glob": "^3.3.3"
+  }
 }
