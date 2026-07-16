@@ -9,6 +9,10 @@
     "access": "public",
     "provenance": true
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/babblebey/monorepo-semantic-release.git"
+  },
   "exports": "./index.js",
   "bin": {
     "monorepo-semantic-release": "./bin/monorepo-semantic-release.js"
