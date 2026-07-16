@@ -59,6 +59,23 @@ export default async function releaseMonorepo(
     await effectiveOptions.onPlan(plan);
   }
 
+  if (effectiveOptions.dryRun) {
+    const executionSkipped = plan.order
+      .map((packageName) => plan.packages.find((pkg) => pkg.name === packageName))
+      .filter((pkg) => pkg?.changed)
+      .map((pkg) => ({
+        name: pkg.name,
+        path: pkg.path,
+        reason: "execution skipped in dry-run mode",
+      }));
+
+    return {
+      plan,
+      released: [],
+      skipped: executionSkipped,
+    };
+  }
+
   const execution = await runPlan({ preparedRuns, order: plan.order });
 
   return {
