@@ -5,6 +5,8 @@ import discoverPackages, { resolveWorkspaceRoot } from "./lib/discover-packages.
 import buildPlan from "./lib/build-plan.js";
 import runPlan from "./lib/run-plan.js";
 
+const DEFAULT_TAG_FORMAT = "${name}@${version}";
+
 function resolveConfigRoot(cwd, configRoot) {
   if (configRoot) {
     return path.resolve(cwd, configRoot);
@@ -61,8 +63,11 @@ export default async function releaseMonorepo(
 
   sharedContext.logger = getLogger(sharedContext);
 
-  const { options: rootResolvedOptions } = await resolveConfig(sharedContext, {}, { buildPlugins: false });
-  const resolvedOptions = { ...rootResolvedOptions, ...effectiveCliOptions };
+  const { options: resolvedOptions } = await resolveConfig(
+    sharedContext,
+    effectiveCliOptions,
+    { buildPlugins: false }
+  );
 
   if (shouldAutoDryRun) {
     sharedContext.logger.warn("This run was not triggered in a known CI environment, running in dry-run mode.");
@@ -84,8 +89,9 @@ export default async function releaseMonorepo(
     packages,
     options: {
       dryRun: resolvedOptions.dryRun,
-      rootBaseConfig: stripMonorepoOnlyOptions(rootResolvedOptions),
+      rootBaseConfig: stripMonorepoOnlyOptions(resolvedOptions),
       runtimeOverrides: toPackageRuntimeOverrides(effectiveCliOptions),
+      defaultTagFormat: DEFAULT_TAG_FORMAT,
     },
   });
 
