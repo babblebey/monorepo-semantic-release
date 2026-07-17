@@ -19,7 +19,7 @@ function toList(values) {
 }
 
 function printHelp() {
-  process.stdout.write(`Monorepo semantic-release\n\nUsage:\n  monorepo-semantic-release [options]\n\nOptions:\n  -h, --help                 Show help\n  -v, --version              Show version\n  -d, --dry-run              Skip publishing\n      --ci                   Toggle CI verifications\n      --no-ci                Disable CI verifications\n      --debug                Enable debug logging (semantic-release:*)\n      --config-root          Workspace parent folder used to load semantic-release config\n      --discover-packages     Enable workspace package discovery (default: true)\n      --no-discover-packages  Disable workspace package discovery\n  -b, --branches             Release branches (repeatable or comma-separated)\n  -p, --plugins              Plugins (repeatable or comma-separated)\n  -r, --repository-url       Git repository URL\n  -t, --tag-format           Tag format (default: "\${name}@\${version}")\n`);
+  process.stdout.write(`Monorepo semantic-release\n\nUsage:\n  monorepo-semantic-release [options]\n\nOptions:\n  -h, --help                 Show help\n  -v, --version              Show version\n  -d, --dry-run              Skip publishing\n      --ci                   Toggle CI verifications\n      --no-ci                Disable CI verifications\n      --debug                Enable debug logging (semantic-release:*)\n      --config-root          Workspace parent folder used to load semantic-release config\n      --discover-packages     Enable workspace package discovery (default: true)\n      --no-discover-packages  Disable workspace package discovery\n  -b, --branches             Release branches (repeatable or comma-separated)\n  -p, --plugins              Plugins (repeatable or comma-separated)\n  -e, --extends              Shareable configuration(s) (repeatable or comma-separated)\n  -r, --repository-url       Git repository URL\n  -t, --tag-format           Tag format (default: "\${name}@\${version}")\n`);
 }
 
 function normalizeOptions(values) {
@@ -41,6 +41,11 @@ function normalizeOptions(values) {
   const plugins = toList(values.plugins);
   if (plugins) {
     options.plugins = plugins;
+  }
+
+  const extendsList = toList(values.extends);
+  if (extendsList) {
+    options.extends = extendsList;
   }
 
   if (typeof values["discover-packages"] === "boolean") {
@@ -68,6 +73,7 @@ export default async function cli(argv = process.argv.slice(2)) {
         "no-discover-packages": { type: "boolean" },
         branches: { type: "string", short: "b", multiple: true },
         plugins: { type: "string", short: "p", multiple: true },
+        extends: { type: "string", short: "e", multiple: true },
         "repository-url": { type: "string", short: "r" },
         "tag-format": { type: "string", short: "t" },
       },

@@ -14,14 +14,16 @@ function resolveConfigRoot(cwd, configRoot) {
 }
 
 function toPackageRuntimeOverrides(cliOptions) {
-  return {
+  return Object.fromEntries(
+    Object.entries({
     ci: cliOptions.ci,
     noCi: cliOptions.noCi,
     branches: cliOptions.branches,
     plugins: cliOptions.plugins,
     repositoryUrl: cliOptions.repositoryUrl,
     tagFormat: cliOptions.tagFormat,
-  };
+    }).filter(([, value]) => value !== undefined && value !== null)
+  );
 }
 
 function stripMonorepoOnlyOptions(options) {
