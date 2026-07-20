@@ -130,6 +130,87 @@ Planning and execution notes:
 - Planning is always dry-run and side-effect free.
 - Execution uses the resolved run options (including dry-run when enabled).
 
+### Best practice for file-path-sensitive plugin options
+
+Some `semantic-release` plugins resolve file paths or globs relative to the active working directory.
+This wrapper executes each package release with `cwd` set to that package path, so path-sensitive plugin options should be configured per package when behavior must differ across packages.
+
+Common path-sensitive options include:
+
+- `@semantic-release/github` - `assets`
+- `@semantic-release/npm` - `pkgRoot`
+- `@semantic-release/changelog` - `changelogFile`
+- `@semantic-release/git` - `assets`
+
+Recommendations:
+
+- Keep root plugin config focused on shared behavior.
+- Avoid broad root-level file globs for package-specific files.
+- Define package-specific file paths in package-level semantic-release config, or in `packages[]` per-package plugin overrides.
+- Treat GitHub auto-generated source archives (`zip` and `tar.gz`) as repository-level assets. They are not controlled by `@semantic-release/github` `assets`.
+
+Example package-local config (inside `packages/a/release.config.mjs`):
+
+```js
+export default {
+	plugins: [
+		"@semantic-release/commit-analyzer",
+		"@semantic-release/release-notes-generator",
+		[
+			"@semantic-release/changelog",
+			{
+				changelogFile: "CHANGELOG.md",
+			},
+		],
+		[
+			"@semantic-release/npm",
+			{
+				pkgRoot: ".",
+			},
+		],
+		[
+			"@semantic-release/git",
+			{
+				assets: ["CHANGELOG.md", "package.json"],
+				message: "chore(release): ${nextRelease.gitTag} [skip ci]",
+			},
+		],
+		[
+			"@semantic-release/github",
+			{
+				assets: ["dist/**"],
+			},
+		],
+	],
+};
+```
+
+Example explicit `packages[]` per-package plugin override:
+
+```js
+export default {
+	branches: ["main"],
+	plugins: [
+		"@semantic-release/commit-analyzer",
+		"@semantic-release/release-notes-generator",
+		"@semantic-release/npm",
+		"@semantic-release/github",
+	],
+	packages: [
+		{
+			name: "@acme/a",
+			path: "packages/a",
+			plugins: [
+				"@semantic-release/commit-analyzer",
+				"@semantic-release/release-notes-generator",
+				["@semantic-release/npm", { pkgRoot: "." }],
+				["@semantic-release/github", { assets: ["dist/**"] }],
+			],
+		},
+	],
+};
+```
+
 ## Quickstart
 
 1. Configure semantic-release at your workspace root (see [Configuration](#configuration)).
